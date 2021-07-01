@@ -35,7 +35,7 @@ use lemmy_db_schema::{
 };
 use lemmy_utils::{
   location_info,
-  utils::{convert_datetime, remove_slurs},
+  utils::convert_datetime,
   LemmyError,
 };
 use lemmy_websocket::LemmyContext;
@@ -193,13 +193,12 @@ impl FromApubToForm<NoteExt> for CommentForm {
     };
 
     let content = get_source_markdown_value(note)?.context(location_info!())?;
-    let content_slurs_removed = remove_slurs(&content);
 
     Ok(CommentForm {
       creator_id: creator.id,
       post_id: post.id,
       parent_id,
-      content: content_slurs_removed,
+      content,
       removed: None,
       read: None,
       published: note.published().map(|u| u.to_owned().naive_local()),

@@ -28,7 +28,7 @@ use lemmy_db_schema::source::{
 use lemmy_db_views_actor::community_view::CommunityView;
 use lemmy_utils::{
   apub::generate_actor_keypair,
-  utils::{check_slurs, check_slurs_opt, is_valid_community_name},
+  utils::is_valid_community_name,
   ApiError,
   ConnectionId,
   LemmyError,
@@ -51,10 +51,6 @@ impl PerformCrud for CreateCommunity {
     if site.community_creation_admin_only && is_admin(&local_user_view).is_err() {
       return Err(ApiError::err("only_admins_can_create_communities").into());
     }
-
-    check_slurs(&data.name)?;
-    check_slurs(&data.title)?;
-    check_slurs_opt(&data.description)?;
 
     if !is_valid_community_name(&data.name) {
       return Err(ApiError::err("invalid_community_name").into());

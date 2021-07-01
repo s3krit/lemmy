@@ -1,22 +1,13 @@
-use crate::{settings::structs::Settings, ApiError, IpAddr};
+use crate::{settings::structs::Settings, IpAddr};
 use actix_web::dev::ConnectionInfo;
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 use itertools::Itertools;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
-use regex::{Regex, RegexBuilder};
+use regex::Regex;
 use url::Url;
 
 lazy_static! {
-  static ref EMAIL_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$").expect("compile regex");
-  static ref SLUR_REGEX: Regex = {
-    let mut slurs = r"(fag(g|got|tard)?\b|cock\s?sucker(s|ing)?|ni((g{2,}|q)+|[gq]{2,})[e3r]+(s|z)?|mudslime?s?|kikes?|\bspi(c|k)s?\b|\bchinks?|gooks?|bitch(es|ing|y)?|whor(es?|ing)|\btr(a|@)nn?(y|ies?)|\b(b|re|r)tard(ed)?s?)".to_string();
-    if let Some(additional_slurs) = Settings::get().additional_slurs {
-        slurs.push('|');
-        slurs.push_str(&additional_slurs);
-    };
-    RegexBuilder::new(&&slurs).case_insensitive(true).build().expect("compile regex")
-  };
-
+  static ref EMAIL_REGEX: Regex = Regex::new(r"^.*@.*$").expect("compile regex");
 
   static ref USERNAME_MATCHES_REGEX: Regex = Regex::new(r"/u/[a-zA-Z][0-9a-zA-Z_]*").expect("compile regex");
   // TODO keep this old one, it didn't work with port well tho
@@ -36,45 +27,6 @@ pub fn naive_from_unix(time: i64) -> NaiveDateTime {
 
 pub fn convert_datetime(datetime: NaiveDateTime) -> DateTime<FixedOffset> {
   DateTime::<FixedOffset>::from_utc(datetime, FixedOffset::east(0))
-}
-
-pub fn remove_slurs(test: &str) -> String {
-  SLUR_REGEX.replace_all(test, "*removed*").to_string()
-}
-
-pub(crate) fn slur_check(test: &str) -> Result<(), Vec<&str>> {
-  let mut matches: Vec<&str> = SLUR_REGEX.find_iter(test).map(|mat| mat.as_str()).collect();
-
-  // Unique
-  matches.sort_unstable();
-  matches.dedup();
-
-  if matches.is_empty() {
-    Ok(())
-  } else {
-    Err(matches)
-  }
-}
-
-pub fn check_slurs(text: &str) -> Result<(), ApiError> {
-  if let Err(slurs) = slur_check(text) {
-    Err(ApiError::err(&slurs_vec_to_str(slurs)))
-  } else {
-    Ok(())
-  }
-}
-
-pub fn check_slurs_opt(text: &Option<String>) -> Result<(), ApiError> {
-  match text {
-    Some(t) => check_slurs(t),
-    None => Ok(()),
-  }
-}
-
-pub(crate) fn slurs_vec_to_str(slurs: Vec<&str>) -> String {
-  let start = "No slurs - ";
-  let combined = &slurs.join(", ");
-  [start, combined].concat()
 }
 
 pub fn generate_random_string() -> String {

@@ -28,7 +28,7 @@ use lemmy_db_schema::{
 use lemmy_utils::{
   location_info,
   settings::structs::Settings,
-  utils::{check_slurs, check_slurs_opt, convert_datetime},
+  utils::convert_datetime,
   LemmyError,
 };
 use lemmy_websocket::LemmyContext;
@@ -185,10 +185,6 @@ impl FromApubToForm<PersonExt> for PersonForm {
       .map(|e| e.shared_inbox)
       .flatten()
       .map(|s| s.to_owned().into());
-
-    check_slurs(&name)?;
-    check_slurs_opt(&display_name)?;
-    check_slurs_opt(&bio)?;
 
     Ok(PersonForm {
       name,

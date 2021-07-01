@@ -4,10 +4,7 @@ use crate::utils::{
   is_valid_matrix_id,
   is_valid_post_title,
   is_valid_username,
-  remove_slurs,
   scrape_text_for_mentions,
-  slur_check,
-  slurs_vec_to_str,
 };
 
 #[test]
@@ -63,34 +60,6 @@ fn test_valid_matrix_id() {
   assert!(!is_valid_matrix_id("dess:matrix.org"));
   assert!(!is_valid_matrix_id(" @dess:matrix.org"));
   assert!(!is_valid_matrix_id("@dess:matrix.org t"));
-}
-
-#[test]
-fn test_slur_filter() {
-  let test =
-      "faggot test kike tranny cocksucker retardeds. Capitalized Niggerz. This is a bunch of other safe text.";
-  let slur_free = "No slurs here";
-  assert_eq!(
-      remove_slurs(&test),
-      "*removed* test *removed* *removed* *removed* *removed*. Capitalized *removed*. This is a bunch of other safe text."
-        .to_string()
-    );
-
-  let has_slurs_vec = vec![
-    "Niggerz",
-    "cocksucker",
-    "faggot",
-    "kike",
-    "retardeds",
-    "tranny",
-  ];
-  let has_slurs_err_str = "No slurs - Niggerz, cocksucker, faggot, kike, retardeds, tranny";
-
-  assert_eq!(slur_check(test), Err(has_slurs_vec));
-  assert_eq!(slur_check(slur_free), Ok(()));
-  if let Err(slur_vec) = slur_check(test) {
-    assert_eq!(&slurs_vec_to_str(slur_vec), has_slurs_err_str);
-  }
 }
 
 // These helped with testing

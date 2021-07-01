@@ -30,7 +30,7 @@ use lemmy_utils::{
   apub::generate_actor_keypair,
   claims::Claims,
   settings::structs::Settings,
-  utils::{check_slurs, is_valid_username},
+  utils::is_valid_username,
   ApiError,
   ConnectionId,
   LemmyError,
@@ -88,7 +88,6 @@ impl PerformCrud for Register {
       }
     }
 
-    check_slurs(&data.username)?;
 
     let actor_keypair = generate_actor_keypair()?;
     if !is_valid_username(&data.username) {

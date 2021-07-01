@@ -32,7 +32,7 @@ use lemmy_db_schema::{
 use lemmy_db_views_actor::community_moderator_view::CommunityModeratorView;
 use lemmy_utils::{
   location_info,
-  utils::{check_slurs, check_slurs_opt, convert_datetime},
+  utils::convert_datetime,
   LemmyError,
 };
 use lemmy_websocket::LemmyContext;
@@ -158,10 +158,6 @@ impl FromApubToForm<GroupExt> for CommunityForm {
       .to_string();
 
     let description = get_source_markdown_value(group)?;
-
-    check_slurs(&name)?;
-    check_slurs(&title)?;
-    check_slurs_opt(&description)?;
 
     let icon = match group.icon() {
       Some(any_image) => Some(

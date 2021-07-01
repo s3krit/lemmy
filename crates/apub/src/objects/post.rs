@@ -36,7 +36,7 @@ use lemmy_db_schema::{
 use lemmy_utils::{
   location_info,
   request::fetch_iframely_and_pictrs_data,
-  utils::{check_slurs, convert_datetime, remove_slurs},
+  utils::convert_datetime,
   LemmyError,
 };
 use lemmy_websocket::LemmyContext;
@@ -209,12 +209,10 @@ impl FromApubToForm<PageExt> for PostForm {
     //       why did this work before? -> i dont think it did?
     //       -> try to make expected_domain optional and set it null if it is a mod action
 
-    check_slurs(&name)?;
-    let body_slurs_removed = body.map(|b| remove_slurs(&b));
     Ok(PostForm {
       name,
       url: url.map(|u| u.into()),
-      body: body_slurs_removed,
+      body,
       creator_id: creator.id,
       community_id: community.id,
       removed: None,
