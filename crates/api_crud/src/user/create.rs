@@ -1,6 +1,6 @@
 use crate::PerformCrud;
 use actix_web::web::Data;
-use lemmy_api_common::{blocking, password_length_check, person::*};
+use lemmy_api_common::{blocking, person::*};
 use lemmy_apub::{
   generate_apub_endpoint,
   generate_followers_url,
@@ -36,6 +36,7 @@ use lemmy_utils::{
   LemmyError,
 };
 use lemmy_websocket::{messages::CheckCaptcha, LemmyContext};
+use regex::Regex;
 
 #[async_trait::async_trait(?Send)]
 impl PerformCrud for Register {
@@ -55,11 +56,15 @@ impl PerformCrud for Register {
       }
     }
 
-    password_length_check(&data.password)?;
-
-    // Make sure passwords match
-    if data.password != data.password_verify {
-      return Err(ApiError::err("passwords_dont_match").into());
+    // Check that they provided a parity.io email address
+    let re = Regex::new(r"^.*@parity.io$").unwrap();
+    match &data.email {
+      Some(email) => {
+        if ! re.is_match(&email) {
+          return Err(ApiError::err("not a parity.io email addresss").into())
+        }
+      }
+      None => return Err(ApiError::err("no email address provided").into())
     }
 
     // Check if there are admins. False if admins exist
