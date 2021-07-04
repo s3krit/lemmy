@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+lemmy_api = { path = "../api"}
 lemmy_apub = { path = "../apub" }
 lemmy_utils = { path = "../utils" }
 lemmy_db_queries = { path = "../db_queries" }

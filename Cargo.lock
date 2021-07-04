@@ -1809,6 +1809,7 @@ dependencies = [
  "http-signature-normalization-actix",
  "itertools",
  "lazy_static",
+ "lemmy_api",
  "lemmy_api_common",
  "lemmy_apub",
  "lemmy_db_queries",

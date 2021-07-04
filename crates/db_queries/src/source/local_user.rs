@@ -7,6 +7,7 @@ use lemmy_db_schema::{
   source::local_user::{LocalUser, LocalUserForm},
   LocalUserId,
 };
+use lemmy_utils::utils;
 
 mod safe_settings_type {
   use crate::ToSafeSettings;
@@ -66,8 +67,9 @@ pub trait LocalUser_ {
 impl LocalUser_ for LocalUser {
   fn register(conn: &PgConnection, form: &LocalUserForm) -> Result<Self, Error> {
     let mut edited_user = form.clone();
+    let temp_password = utils::generate_random_string();
     let password_hash =
-      hash(&form.password_encrypted, DEFAULT_COST).expect("Couldn't hash password");
+      hash(temp_password, DEFAULT_COST).expect("Couldn't hash password");
     edited_user.password_encrypted = password_hash;
 
     Self::create(&conn, &edited_user)

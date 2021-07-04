@@ -1,5 +1,6 @@
 use crate::PerformCrud;
 use actix_web::web::Data;
+use lemmy_api::*;
 use lemmy_api_common::{blocking, person::*};
 use lemmy_apub::{
   generate_apub_endpoint,
@@ -45,7 +46,7 @@ impl PerformCrud for Register {
   async fn perform(
     &self,
     context: &Data<LemmyContext>,
-    _websocket_id: Option<ConnectionId>,
+    websocket_id: Option<ConnectionId>,
   ) -> Result<LoginResponse, LemmyError> {
     let data: &Register = &self;
 
@@ -126,7 +127,7 @@ impl PerformCrud for Register {
       person_id: inserted_person.id,
       email: Some(data.email.to_owned()),
       password_encrypted: data.password.to_owned(),
-      show_nsfw: Some(data.show_nsfw),
+      show_nsfw: Some(true),
       show_bot_accounts: Some(true),
       theme: Some("browser".into()),
       default_sort_type: Some(SortType::Active as i16),
@@ -138,12 +139,20 @@ impl PerformCrud for Register {
       send_notifications_to_email: Some(false),
     };
 
+
     let inserted_local_user = match blocking(context.pool(), move |conn| {
       LocalUser::register(conn, &local_user_form)
     })
     .await?
     {
-      Ok(lu) => lu,
+      Ok(lu) => {
+        // If we successfully register a new local_user, immediately reset their password and send a password reset request
+        // This code is currently hacky AF, and if email isn't set up properly, shit dies - probably shouldn't just unwrap() but I'm an idiot
+        /* let email = lu.email.clone().unwrap();
+        let resetter: PasswordReset = PasswordReset{ email: email };
+        resetter.perform(context, websocket_id).await.expect("Resetting user email didn't work. Email setup is likely broken"); */
+        lu
+      },
       Err(e) => {
         let err_type = if e.to_string()
           == "duplicate key value violates unique constraint \"local_user_email_key\""
@@ -219,9 +228,8 @@ impl PerformCrud for Register {
       }
     }
 
-    // Return the jwt
-    Ok(LoginResponse {
-      jwt: Claims::jwt(inserted_local_user.id.0)?,
-    })
+    // Return err on succesfully registering, so the user at least gets told. 
+    // We don't want to issue them an JWT
+    Err(ApiError::err("Registered successfully. Check email for a password reset link").into())
   }
 }
