@@ -29,7 +29,6 @@ use lemmy_db_schema::{
 use lemmy_db_views_actor::person_view::PersonViewSafe;
 use lemmy_utils::{
   apub::generate_actor_keypair,
-  claims::Claims,
   settings::structs::Settings,
   utils::is_valid_username,
   ApiError,
@@ -140,7 +139,7 @@ impl PerformCrud for Register {
     };
 
 
-    let inserted_local_user = match blocking(context.pool(), move |conn| {
+    match blocking(context.pool(), move |conn| {
       LocalUser::register(conn, &local_user_form)
     })
     .await?
@@ -148,9 +147,9 @@ impl PerformCrud for Register {
       Ok(lu) => {
         // If we successfully register a new local_user, immediately reset their password and send a password reset request
         // This code is currently hacky AF, and if email isn't set up properly, shit dies - probably shouldn't just unwrap() but I'm an idiot
-        /* let email = lu.email.clone().unwrap();
+        let email = lu.email.clone().unwrap();
         let resetter: PasswordReset = PasswordReset{ email: email };
-        resetter.perform(context, websocket_id).await.expect("Resetting user email didn't work. Email setup is likely broken"); */
+        resetter.perform(context, websocket_id).await.expect("Resetting user email didn't work. Email setup is likely broken");
         lu
       },
       Err(e) => {

@@ -42,7 +42,7 @@ test('Set some user settings, check that they are federated', async () => {
   let banner = 'https://image.flaticon.com/icons/png/512/36/35896.png';
   let bio = 'a changed bio';
   let form: SaveUserSettings = {
-    show_nsfw: false,
+    show_nsfw: true,
     theme: '',
     default_sort_type: Object.keys(SortType).indexOf(SortType.Hot),
     default_listing_type: Object.keys(ListingType).indexOf(ListingType.All),
